@@ -240,9 +240,10 @@ namespace IONET.GLTF
 
             ViewNode(modelRoot.LogicalScenes[0].VisualChildren.FirstOrDefault(), "");
 
-            modelRoot.SaveGLTF(filePath, new WriteSettings()
+            // Allow for glb by using Save()
+            modelRoot.Save(filePath, new WriteSettings()
             {
-                JsonIndented = true,
+                JsonIndented = true
             });
         }
 

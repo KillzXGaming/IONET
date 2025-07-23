@@ -90,14 +90,17 @@ namespace IONET.Core
 
             // detect skeleton
             //Check if bone is rigged in the skeleton id list or if node is a joint type and no root has been set yet
-            if ((!string.IsNullOrEmpty(bone.Name) && skeletonIds.Contains(bone.Name)) ||
-                (bone.IsJoint && parent == null))
+            if (bone.Name != "Armature")
             {
-                //Root found. Apply parent node transform and add to skeleton
-                model.Skeleton.RootBones.Add(bone);
-                bone.LocalTransform *= parentMatrix;
+                if ((!string.IsNullOrEmpty(bone.Name) && skeletonIds.Contains(bone.Name)) ||
+                (bone.IsJoint && parent == null) || bone.Name == "Root")
+                {
+                    //Root found. Apply parent node transform and add to skeleton
+                    model.Skeleton.RootBones.Add(bone);
+                    bone.LocalTransform *= parentMatrix;
 
-                return;
+                    return;
+                }
             }
 
             // load children
