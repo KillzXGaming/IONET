@@ -6,6 +6,8 @@ using System.IO;
 using IONET.Core.Skeleton;
 using IONET.Core.Animation;
 using IONET.Core.IOMath;
+using System.Globalization;
+using System.Threading;
 
 namespace IONET.MayaAnim
 {
@@ -133,6 +135,20 @@ namespace IONET.MayaAnim
         }
 
         public void Open(string fileName)
+        {
+            var originalCulture = Thread.CurrentThread.CurrentCulture;
+            try
+            {
+                Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture; // or new CultureInfo("en-US")
+                Parse(fileName);
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentCulture = originalCulture; // restore
+            }
+        }
+
+        private void Parse(string fileName)
         {
             Name = Path.GetFileNameWithoutExtension(fileName);
             using (StreamReader r = new StreamReader(new FileStream(fileName, FileMode.Open)))
