@@ -43,7 +43,7 @@ namespace IONET.Core.Animation
         public float GetFrameCount()
         {
             if (EndFrame != 0)
-                return EndFrame;
+                return EndFrame - StartFrame;
 
             float frameCount = 0;
             foreach (var group in Groups)

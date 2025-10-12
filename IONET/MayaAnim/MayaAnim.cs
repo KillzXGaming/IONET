@@ -278,7 +278,7 @@ namespace IONET.MayaAnim
                 file.WriteLine("timeUnit " + header.timeUnit + ";");
                 file.WriteLine("linearUnit " + header.linearUnit + ";");
                 file.WriteLine("angularUnit " + header.angularUnit + ";");
-                file.WriteLine("startTime " + 1 + ";");
+                file.WriteLine("startTime " + header.startTime + ";");
                 file.WriteLine("endTime " + header.endTime + ";");
 
                 int Row = 0;
@@ -420,8 +420,8 @@ namespace IONET.MayaAnim
         static MayaAnim CreateMayaAnimation(ExportSettings settings, IOAnimation animation, IOSkeleton skeleton)
         {
             MayaAnim anim = new MayaAnim();
-            anim.header.startTime = 0;
-            anim.header.endTime = animation.EndFrame != 0 ? animation.EndFrame :  animation.GetFrameCount();
+            anim.header.startTime = 1;
+            anim.header.endTime = animation.EndFrame != 0 ? animation.EndFrame :  animation.GetFrameCount() + anim.header.startTime;
             if (!settings.MayaAnimUseRadians)
                 anim.header.angularUnit = "deg";
 

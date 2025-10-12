@@ -48,7 +48,7 @@ namespace IONET.SMD
 
                 if (scene.Animations.Count > 0)
                 {
-                    for (int i = 0; i < scene.Animations[0].GetFrameCount(); i++)
+                    for (int i = 0; i <= scene.Animations[0].GetFrameCount(); i++)
                     {
                         w.WriteLine($"time {i}");
                         foreach (var group in scene.Animations[0].Groups)
