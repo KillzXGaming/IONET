@@ -60,6 +60,9 @@ namespace IONET
         /// </summary>
         [Category("Materials"), DisplayName("Split Meshes by Materials"), Description("Splits meshes with multiple materials")]
         public bool SplitMeshMaterials { get; set; } = true;
+
+        [Category("Animations"), DisplayName("Frame Rate"), Description("Sets the currently used frame rate used by GLTF")]
+        public float FrameRate { get; set; } = 24;
     }
 
     public class ExportSettings
