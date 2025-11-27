@@ -10,6 +10,7 @@ using System.Numerics;
 using System.Linq;
 using IONET.Assimp;
 using IONET.Core.Skeleton;
+using IONET.Core.Animation;
 
 namespace IONET.AssimpLib
 {
@@ -81,6 +82,8 @@ namespace IONET.AssimpLib
             {
                 Transform = ionode.LocalTransform.FromNumerics(),
             };
+            if (ionode is IONode n && n.Mesh != null)
+                n.Mesh.ParentBone = n;
 
             foreach (IOBone child in ionode.Children)
                 assimpNode.Children.Add(SaveBone(child));
@@ -112,7 +115,7 @@ namespace IONET.AssimpLib
                     WrapModeU = ConvertWrap(iotexture.WrapS),
                     WrapModeV = ConvertWrap(iotexture.WrapT),
                     UVIndex = iotexture.UVChannel,
-                    TextureType = type,
+                    TextureType = type,  
                 };
             }
 
@@ -164,13 +167,30 @@ namespace IONET.AssimpLib
                 };
                 scene.Meshes.Add(assimpMesh);
 
+
                 var n = new Node()
                 {
                     Name = assimpMesh.Name,
                     Transform = Matrix4x4.Identity,
                 };
+
+                bool hasNode = false;
+
+                // Find matching node attachment
+                if (iomesh.ParentBone != null)
+                {
+                    var node = scene.RootNode.FindNode(iomesh.ParentBone.Name);
+                    if (node != null)
+                    {
+                        n = node;
+                        hasNode = true;
+                    }
+                }
+
                 n.MeshIndices.Add(scene.Meshes.Count - 1);
-                scene.RootNode.Children.Add(n);
+
+                if (!hasNode)
+                    scene.RootNode.Children.Add(n);
 
                 for (int v = 0; v < iomesh.Vertices.Count; v++)
                 {
@@ -226,10 +246,10 @@ namespace IONET.AssimpLib
                 foreach (var poly in iomesh.Polygons)
                 {
                     var idx = ioscene.Materials.FindIndex(x => x.Name == poly.MaterialName);
-                    if (idx != -1)
-                        assimpMesh.MaterialIndex = idx;
-                    else if (!string.IsNullOrEmpty(poly.MaterialName))
-                        Console.WriteLine($"Failed to find material {poly.MaterialName}");
+                        if (idx != -1)
+                            assimpMesh.MaterialIndex = idx;
+                        else if (!string.IsNullOrEmpty(poly.MaterialName))
+                            Console.WriteLine($"Failed to find material {poly.MaterialName}");
 
                     for (int i = 0; i < poly.Indicies.Count; i += 3)
                     {
@@ -248,6 +268,45 @@ namespace IONET.AssimpLib
             }
             foreach (var bone in missingBones)
                 Console.WriteLine($"Missing {bone} in skeleton!");
+        }
+
+        private Animation SaveAnimation(IOAnimation ioanim)
+        {
+            Animation anim = new Animation()
+            {
+                Name = ioanim.Name,
+                DurationInTicks = ioanim.GetFrameCount(),
+                TicksPerSecond = ioanim.FrameRate,
+            };
+
+             foreach (var group in ioanim.Groups)
+            {
+                NodeAnimationChannel node = new NodeAnimationChannel()
+                {
+                    NodeName = ioanim.Name,
+                };
+                anim.NodeAnimationChannels.Add(node);
+
+                foreach (var track in group.Tracks)
+                {
+                    switch (track.ChannelType)
+                    {
+                        case IOAnimationTrackType.PositionX:
+                            break;
+                        case IOAnimationTrackType.PositionY:
+                            break;
+                        case IOAnimationTrackType.PositionZ:
+                            break;
+                        case IOAnimationTrackType.ScaleX:
+                            break;
+                        case IOAnimationTrackType.ScaleY:
+                            break;
+                        case IOAnimationTrackType.ScaleZ:
+                            break;
+                    }
+                }
+            }
+            return anim;
         }
 
         public ExportFormatDescription[] GetSupportedExportFormats()

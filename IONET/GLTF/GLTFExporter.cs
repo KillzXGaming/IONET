@@ -57,7 +57,6 @@ namespace IONET.GLTF
             var modelRoot = ModelRoot.CreateModel();
             var iomodel = ioscene.Models.FirstOrDefault();
             var sceneRoot = modelRoot.UseScene("Scene").CreateNode("Armature");
-
             foreach (var iomaterial in ioscene.Materials)
             {
                 //todo set texture maps
@@ -147,7 +146,8 @@ namespace IONET.GLTF
                     for (int i = 0; i  < 8; i++)
                     {
                         if (iomesh.HasUVSet(i))
-                            SetVertexData(prim, $"TEXCOORD_{i}", iomesh.Vertices.Select(x => x.UVs[i]).ToList());
+                            SetVertexData(prim, $"TEXCOORD_{i}", iomesh.Vertices.Select(x =>
+                             new Vector2(x.UVs[i].X, 1.0f - x.UVs[i].Y)).ToList());
                     }
 
                     //color set
@@ -171,6 +171,9 @@ namespace IONET.GLTF
                         var vertex = iomesh.Vertices[i];
                         for (int j = 0; j < vertex.Envelope.Weights.Count; j++)
                         {
+                            if (vertex.Envelope.Weights[j].Weight == 0)
+                                continue;
+
                             indices.Add(GetBoneIndex(node.Skin, vertex.Envelope.Weights[j].BoneName));
                             weights.Add(vertex.Envelope.Weights[j].Weight);
                         }
@@ -239,6 +242,9 @@ namespace IONET.GLTF
             }
 
             ViewNode(modelRoot.LogicalScenes[0].VisualChildren.FirstOrDefault(), "");
+
+            if (settings.GlobalTransform != Matrix4x4.Identity)
+                modelRoot.ApplyBasisTransform(settings.GlobalTransform);
 
             modelRoot.SaveGLTF(filePath, new WriteSettings()
             {

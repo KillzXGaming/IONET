@@ -29,6 +29,14 @@ namespace IONET.Core.Animation
             set { Value = value; }
         }
 
+        public IOKeyFrame() { }
+
+        public IOKeyFrame(float frame, float value)
+        {
+            this.Frame = frame;
+            this.Value = value;
+        }
+
         public virtual object Clone()
         {
             return new IOKeyFrame()

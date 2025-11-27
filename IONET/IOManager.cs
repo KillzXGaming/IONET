@@ -114,7 +114,7 @@ namespace IONET
                         settings.GenerateTangentsAndBinormals = false;
                     }
 
-                    var scene = l.GetScene(filePath);
+                    var scene = l.GetScene(filePath, settings);
                     System.Console.WriteLine("Loaded scene!");
 
                     // apply post processing

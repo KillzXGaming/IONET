@@ -13,6 +13,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 using System.Text.Json;
+using IONET.Core.Animation;
 
 namespace IONET.Assimp
 {
@@ -23,7 +24,7 @@ namespace IONET.Assimp
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
-        public IOScene GetScene(string filePath)
+        public IOScene GetScene(string filePath, ImportSettings settings)
         {
             PostProcessSteps postProcess = PostProcessSteps.Triangulate;
             postProcess |= PostProcessSteps.OptimizeMeshes;
@@ -40,6 +41,9 @@ namespace IONET.Assimp
 
             LoadMaterials(ioscene, scene);
             LoadNodes(ioscene, iomodel, scene);
+
+            foreach (var anim in scene.Animations)
+                ioscene.Animations.Add(LoadAnimation(anim));
 
             ioscene.LoadSkeletonFromNodes(iomodel);
 
@@ -206,6 +210,106 @@ namespace IONET.Assimp
             iomesh.TransformVertices(worldTansform);
 
             return iomesh;
+        }
+
+        private IOAnimation LoadAnimation(Animation animation)
+        {
+            float frameRate = (float)animation.TicksPerSecond;
+
+            IOAnimation ioanim = new IOAnimation()
+            {
+                EndFrame = (float)animation.DurationInTicks,  
+                FrameRate = (float)animation.TicksPerSecond,
+            };
+
+            float GetFrame(double tick)
+            {
+                return (float)tick;
+            }
+
+            ioanim.Name = animation.Name;
+            for (int i = 0; i < animation.NodeAnimationChannelCount; i++)
+            {
+                var node = animation.NodeAnimationChannels[i];
+                IOAnimation nodeAnim = new IOAnimation()
+                {
+                    Name = node.NodeName, 
+                };
+                ioanim.Groups.Add(nodeAnim);
+
+                bool IsPreviousValue(IOAnimationTrack track, double value)
+                {
+                    if (track.KeyFrames.Count > 0 && (float)track.KeyFrames.LastOrDefault().Value == (float)value)
+                        return true;
+                    return false;
+                }
+
+                if (node.HasPositionKeys)
+                {
+                    IOAnimationTrack positionTrackX = new IOAnimationTrack(IOAnimationTrackType.PositionX);
+                    IOAnimationTrack positionTrackY = new IOAnimationTrack(IOAnimationTrackType.PositionY);
+                    IOAnimationTrack positionTrackZ = new IOAnimationTrack(IOAnimationTrackType.PositionZ);
+                     
+
+                    foreach (var key in node.PositionKeys)
+                    {
+                        if (!IsPreviousValue(positionTrackX, key.Value.X))
+                            positionTrackX.KeyFrames.Add(new IOKeyFrame(GetFrame(key.Time), key.Value.X));
+                        if (!IsPreviousValue(positionTrackY, key.Value.Y))
+                            positionTrackY.KeyFrames.Add(new IOKeyFrame(GetFrame(key.Time), key.Value.Y));
+                        if (!IsPreviousValue(positionTrackZ, key.Value.Z))
+                            positionTrackZ.KeyFrames.Add(new IOKeyFrame(GetFrame(key.Time), key.Value.Z));
+                    }
+
+                    if (positionTrackX.HasKeys) nodeAnim.Tracks.Add(positionTrackX);
+                    if (positionTrackY.HasKeys) nodeAnim.Tracks.Add(positionTrackY);
+                    if (positionTrackZ.HasKeys) nodeAnim.Tracks.Add(positionTrackZ);
+                }
+                if (node.HasRotationKeys)
+                {
+                    IOAnimationTrack rotationTrackX = new IOAnimationTrack(IOAnimationTrackType.RotationEulerX);
+                    IOAnimationTrack rotationTrackY = new IOAnimationTrack(IOAnimationTrackType.RotationEulerY);
+                    IOAnimationTrack rotationTrackZ = new IOAnimationTrack(IOAnimationTrackType.RotationEulerZ);
+
+                    foreach (var key in node.RotationKeys)
+                    {
+                        // Quat to euler key
+                        var eulerKey = key.Value.ToEuler();
+
+                        if (!IsPreviousValue(rotationTrackX, eulerKey.X))
+                            rotationTrackX.KeyFrames.Add(new IOKeyFrame(GetFrame(key.Time), eulerKey.X));
+                        if (!IsPreviousValue(rotationTrackY, eulerKey.Y))
+                            rotationTrackY.KeyFrames.Add(new IOKeyFrame(GetFrame(key.Time), eulerKey.Y));
+                        if (!IsPreviousValue(rotationTrackZ, eulerKey.Z))
+                            rotationTrackZ.KeyFrames.Add(new IOKeyFrame(GetFrame(key.Time), eulerKey.Z));
+                    }
+
+                    if (rotationTrackX.HasKeys) nodeAnim.Tracks.Add(rotationTrackX);
+                    if (rotationTrackY.HasKeys) nodeAnim.Tracks.Add(rotationTrackY);
+                    if (rotationTrackZ.HasKeys) nodeAnim.Tracks.Add(rotationTrackZ);
+                }
+                if (node.HasScalingKeys)
+                {
+                    IOAnimationTrack scaleTrackX = new IOAnimationTrack(IOAnimationTrackType.ScaleX);
+                    IOAnimationTrack scaleTrackY = new IOAnimationTrack(IOAnimationTrackType.ScaleY);
+                    IOAnimationTrack scaleTrackZ = new IOAnimationTrack(IOAnimationTrackType.ScaleZ);
+
+                    foreach (var key in node.ScalingKeys)
+                    {
+                        if (!IsPreviousValue(scaleTrackX, key.Value.X))
+                            scaleTrackX.KeyFrames.Add(new IOKeyFrame(GetFrame(key.Time), key.Value.X));
+                        if (!IsPreviousValue(scaleTrackY, key.Value.Y))
+                            scaleTrackY.KeyFrames.Add(new IOKeyFrame(GetFrame(key.Time), key.Value.Y));
+                        if (!IsPreviousValue(scaleTrackZ, key.Value.Z))
+                            scaleTrackZ.KeyFrames.Add(new IOKeyFrame(GetFrame(key.Time), key.Value.Z));
+                    }
+
+                    if (scaleTrackX.HasKeys) nodeAnim.Tracks.Add(scaleTrackX);
+                    if (scaleTrackY.HasKeys) nodeAnim.Tracks.Add(scaleTrackY);
+                    if (scaleTrackZ.HasKeys) nodeAnim.Tracks.Add(scaleTrackZ);
+                }
+            }
+            return ioanim;
         }
 
         /// <summary>

@@ -42,7 +42,7 @@ namespace IONET.Collada
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
-        public IOScene GetScene(string filePath)
+        public IOScene GetScene(string filePath, ImportSettings settings)
         {
             // generate a new scene
             IOScene scene = new IOScene();
@@ -64,9 +64,9 @@ namespace IONET.Collada
             // Load animations
             if (_collada.Library_Animations != null)
             {
-                foreach (var anim in _collada.Library_Animations.Animation)
-                    if (anim.Animations != null)
-                        scene.Animations.Add(LoadAnimation(anim));
+               // foreach (var anim in _collada.Library_Animations.Animation)
+                  //  if (anim.Animations != null)
+                     //   scene.Animations.Add(LoadAnimation(anim));
             }
 
             // look through all visual scene

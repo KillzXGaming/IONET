@@ -12,7 +12,7 @@ namespace IONET.Fbx
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
-        public IOScene GetScene(string filePath)
+        public IOScene GetScene(string filePath, ImportSettings settings)
         {
             FbxHelper helper = new FbxHelper(FbxIO.ReadBinary(filePath));
 

@@ -29,6 +29,8 @@ namespace IONET.Core.Animation
         /// </summary>
         public List<IOKeyFrame> KeyFrames { get; internal set; } = new List<IOKeyFrame>();
 
+        public bool HasKeys => KeyFrames.Count > 0;
+
         public IOAnimationTrack() { }
 
         public IOAnimationTrack(IOAnimationTrackType channelType)

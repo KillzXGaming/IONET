@@ -47,7 +47,7 @@ namespace IONET.SMD
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
-        public IOScene GetScene(string filePath)
+        public IOScene GetScene(string filePath, ImportSettings settings)
         {
             IOScene scene = new IOScene();
 
@@ -160,10 +160,13 @@ namespace IONET.SMD
                                     var v2 = ParseVertex(r.ReadLine(), idxToBone, out parent);
                                     var v3 = ParseVertex(r.ReadLine(), idxToBone, out parent);
 
-                                    var meshName = parent.Name + material;
-
-                                    if(!meshBones.Contains(parent))
-                                        meshBones.Add(parent);
+                                    var meshName = material;
+                                    if (parent != null)
+                                    {
+                                         meshName = parent.Name + material;
+                                        if (!meshBones.Contains(parent))
+                                            meshBones.Add(parent);
+                                    }
 
                                     meshName = Regex.Replace(meshName.Trim(), @"\s+", "_").Replace("#", "");
 
@@ -249,7 +252,7 @@ namespace IONET.SMD
             vertex.UVs.Add(new System.Numerics.Vector2(float.Parse(args[7]), float.Parse(args[8])));
 
             // transform by parent so we can ignore it
-            if(parent != -1)
+            if(parent != -1 && idxToBones.Count > parent)
             {
                 vertex.Transform(idxToBones[parent].WorldTransform);
                 parentBone = idxToBones[parent];
@@ -260,12 +263,15 @@ namespace IONET.SMD
             }
 
             // parse weights
-            if(args.Length >= 10)
+            if(args.Length >= 10 && idxToBones.Count > 0)
             {
                 int links = int.Parse(args[9]);
 
                 for (int i = 0; i < links; i++)
                 {
+                    if (idxToBones.Count <= int.Parse(args[10 + i * 2]))
+                        continue;
+
                     vertex.Envelope.Weights.Add(new IOBoneWeight()
                     {
                         BoneName = idxToBones[int.Parse(args[10 + i * 2])].Name,

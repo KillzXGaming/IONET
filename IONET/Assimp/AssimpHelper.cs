@@ -1,5 +1,6 @@
 ﻿using Assimp;
 using Assimp.Unmanaged;
+using IONET.Collada.Core.Transform;
 using System;
 using System.IO;
 using System.Numerics;
@@ -54,6 +55,25 @@ namespace IONET.Assimp
                 default:
                     return "x64";
             }
+        }
+
+        public static Vector3 ToEuler(this Quaternion q)
+        {
+            Matrix4x4 mat = Matrix4x4.CreateFromQuaternion(q);
+            float x, y, z;
+            y = (float)Math.Asin(Math.Clamp(mat.M13, -1, 1));
+
+            if (Math.Abs(mat.M13) < 0.99999)
+            {
+                x = (float)Math.Atan2(-mat.M23, mat.M33);
+                z = (float)Math.Atan2(-mat.M12, mat.M11);
+            }
+            else
+            {
+                x = (float)Math.Atan2(mat.M32, mat.M22);
+                z = 0;
+            }
+            return new Vector3(x, y, z) * -1;
         }
 
         public static Matrix4x4 ToNumerics(this SN.Matrix4x4 matIn)

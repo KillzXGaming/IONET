@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Numerics;
 
 namespace IONET
 {
@@ -125,5 +126,10 @@ namespace IONET
         /// 
         /// </summary>
         public bool MayaAnimUseRadians { get; set; } = true;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public Matrix4x4 GlobalTransform = Matrix4x4.Identity;
     }
 }

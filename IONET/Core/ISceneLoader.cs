@@ -8,6 +8,6 @@
 
         bool Verify(string filePath);
 
-        IOScene GetScene(string filePath);
+        IOScene GetScene(string filePath, ImportSettings settings);
     }
 }
