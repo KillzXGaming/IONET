@@ -102,7 +102,7 @@ namespace IONET.GLTF
                         IOAnimationTrack X = new IOAnimationTrack(type + 0);
                         IOAnimationTrack Y = new IOAnimationTrack(type + 1);
                         IOAnimationTrack Z = new IOAnimationTrack(type + 2);
-                        IOAnimationTrack W = new IOAnimationTrack(type + 2);
+                        IOAnimationTrack W = new IOAnimationTrack(type + 3);
                         group.Tracks.Add(X);
                         group.Tracks.Add(Y);
                         group.Tracks.Add(Z);
