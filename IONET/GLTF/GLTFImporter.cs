@@ -65,7 +65,12 @@ namespace IONET.GLTF
             iomodel.Name = Path.GetFileNameWithoutExtension(filePath);
             scene.Models.Add(iomodel);
 
-            var model = SharpGLTF.Schema2.ModelRoot.Load(filePath);
+            ReadSettings readSettings = new ReadSettings()
+            {
+                Validation = SharpGLTF.Validation.ValidationMode.Skip
+            };
+
+            var model = SharpGLTF.Schema2.ModelRoot.Load(filePath, readSettings);
             foreach (var node in model.LogicalScenes[0].VisualChildren)
                 ProcessNodes(iomodel, node, null, Matrix4x4.Identity);
 
@@ -200,6 +205,7 @@ namespace IONET.GLTF
             {
                 IOMaterial iomaterial = new IOMaterial();
                 iomaterial.Name = mat.Name;
+                iomaterial.Label = mat.Name;
                 scene.Materials.Add(iomaterial);
 
                 //Texture map handling

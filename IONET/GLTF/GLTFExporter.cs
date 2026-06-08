@@ -248,7 +248,7 @@ namespace IONET.GLTF
 
             modelRoot.SaveGLTF(filePath, new WriteSettings()
             {
-                JsonIndented = true,
+                JsonIndented = true
             });
         }
 

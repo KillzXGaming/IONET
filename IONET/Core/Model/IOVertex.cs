@@ -1,4 +1,5 @@
 ﻿using IONET.Core.Skeleton;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -98,12 +99,35 @@ namespace IONET.Core.Model
         /// <returns></returns>
         public override bool Equals(object obj)
         {
-            if(obj is IOVertex vert)
+            if (!(obj is IOVertex vert))
+                return false;
+
+            if (Position != vert.Position || Normal != vert.Normal || Tangent != vert.Tangent || Binormal != vert.Binormal)
+                return false;
+
+            if (UVs.Count != vert.UVs.Count || Colors.Count != vert.Colors.Count)
+                return false;
+
+            for (int i = 0; i < UVs.Count; i++)
+                if (UVs[i] != vert.UVs[i])
+                    return false;
+
+            for (int i = 0; i < Colors.Count; i++)
+                if (Colors[i] != vert.Colors[i])
+                    return false;
+
+            if (Envelope.UseBindMatrix != vert.Envelope.UseBindMatrix || Envelope.Weights.Count != vert.Envelope.Weights.Count)
+                return false;
+
+            for (int i = 0; i < Envelope.Weights.Count; i++)
             {
-                return ToString().Equals(obj.ToString());
+                var w1 = Envelope.Weights[i];
+                var w2 = vert.Envelope.Weights[i];
+                if (w1.BoneName != w2.BoneName || w1.Weight != w2.Weight || w1.BindMatrix != w2.BindMatrix)
+                    return false;
             }
 
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -112,16 +136,27 @@ namespace IONET.Core.Model
         /// <returns></returns>
         public override int GetHashCode()
         {
-            return ToString().GetHashCode(); ;
-        }
+            var hash = new HashCode();
+            hash.Add(Position);
+            hash.Add(Normal);
+            hash.Add(Tangent);
+            hash.Add(Binormal);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            return $"{Position.ToString()} {Normal.ToString()} {Tangent.ToString()} {Binormal.ToString()} {string.Join(" ", UVs)} {string.Join(" ", Colors)} {string.Join(" ", Envelope.Weights)}";
+            foreach (var uv in UVs)
+                hash.Add(uv);
+
+            foreach (var color in Colors)
+                hash.Add(color);
+
+            hash.Add(Envelope.UseBindMatrix);
+            foreach (var weight in Envelope.Weights)
+            {
+                hash.Add(weight.BoneName);
+                hash.Add(weight.Weight);
+                hash.Add(weight.BindMatrix);  // Matrix4x4 has GetHashCode
+            }
+
+            return hash.ToHashCode();
         }
     }
 }
