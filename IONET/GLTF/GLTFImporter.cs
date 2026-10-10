@@ -203,6 +203,7 @@ namespace IONET.GLTF
             {
                 IOMaterial iomaterial = new IOMaterial();
                 iomaterial.Name = mat.Name;
+                iomaterial.Label = mat.Name;
                 scene.Materials.Add(iomaterial);
 
                 //Texture map handling

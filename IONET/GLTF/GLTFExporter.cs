@@ -250,7 +250,8 @@ namespace IONET.GLTF
 
             modelRoot.SaveGLTF(filePath, new WriteSettings()
             {
-                JsonIndented = true, Validation = SharpGLTF.Validation.ValidationMode.Skip,
+                JsonIndented = true,
+                Validation = SharpGLTF.Validation.ValidationMode.Skip,
             });
         }
 
