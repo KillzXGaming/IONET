@@ -11,8 +11,6 @@ namespace IONET.Assimp
 {
     public static class AssimpHelper
     {
-
-
         public static bool IsRuntimePresent()
         {
             string platform = "";

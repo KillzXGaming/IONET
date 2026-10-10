@@ -65,7 +65,10 @@ namespace IONET.GLTF
             iomodel.Name = Path.GetFileNameWithoutExtension(filePath);
             scene.Models.Add(iomodel);
 
-            var model = SharpGLTF.Schema2.ModelRoot.Load(filePath);
+            var model = SharpGLTF.Schema2.ModelRoot.Load(filePath, new ReadSettings()
+            {
+                 Validation = SharpGLTF.Validation.ValidationMode.Skip,
+            });
             foreach (var node in model.LogicalScenes[0].VisualChildren)
                 ProcessNodes(iomodel, node, null, Matrix4x4.Identity);
 
@@ -285,8 +288,13 @@ namespace IONET.GLTF
         {
             IOMesh iomesh = new IOMesh();
             iomesh.Name = mesh.Name;
+            bool firstPrimitive = true;
             foreach (var prim in mesh.Primitives)
             {
+                //Each primitive has its own vertex buffer. All primitives are merged into one
+                //vertex list, so indices must be offset by the vertices added so far
+                int baseVertex = iomesh.Vertices.Count;
+
                 IOPolygon iopoly = new IOPolygon();
                 iomesh.Polygons.Add(iopoly);
 
@@ -295,9 +303,9 @@ namespace IONET.GLTF
 
                 foreach (var tri in prim.GetTriangleIndices())
                 {
-                    iopoly.Indicies.Add(tri.A);
-                    iopoly.Indicies.Add(tri.B);
-                    iopoly.Indicies.Add(tri.C);
+                    iopoly.Indicies.Add(tri.A + baseVertex);
+                    iopoly.Indicies.Add(tri.B + baseVertex);
+                    iopoly.Indicies.Add(tri.C + baseVertex);
                 }
 
                 //tex coord channel list
@@ -337,11 +345,12 @@ namespace IONET.GLTF
 
                 //normals
                 var nrm = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
-                iomesh.HasNormals = nrm?.Count > 0;
+                iomesh.HasNormals = (firstPrimitive || iomesh.HasNormals) && nrm?.Count > 0;
 
                 //tangents
                 var tangent = prim.GetVertexAccessor("TANGENT")?.AsVector4Array();
-                iomesh.HasTangents = tangent?.Count > 0;
+                iomesh.HasTangents = (firstPrimitive || iomesh.HasTangents) && tangent?.Count > 0;
+                firstPrimitive = false;
 
                 //Init a vertex list
                 IOVertex[] vertices = new IOVertex[pos.Count];
@@ -357,7 +366,7 @@ namespace IONET.GLTF
 
                     //tex coord channel list
                     for (int j = 0; j < texCoords?.Count; j++)
-                        vertices[i].SetUV(texCoords[j][i].X, texCoords[j][i].Y, j);
+                        vertices[i].SetUV(texCoords[j][i].X, 1.0f - texCoords[j][i].Y, j);
 
                     //vertex color channel list
                     for (int j = 0; j < colorList?.Count; j++)

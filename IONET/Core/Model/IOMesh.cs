@@ -157,53 +157,71 @@ namespace IONET.Core.Model
             Vertices = newVertices;
         }
 
+        /// <summary>
+        /// Splits each polygon group into individual materials.
+        /// </summary>
         public List<IOMesh> SplitByMaterial()
         {
-            if (Polygons.Count == 0)
-                return new List<IOMesh>();
-
             List<IOMesh> meshes = new List<IOMesh>();
 
-            // remap polygon indices
-            for (int j = 0; j < Polygons.Count; j++)
-            {
-                //Keep existing base mesh. Split polygon groups if materials are unique
-                if (j == 0)
-                    continue;
+            if (Polygons.Count <= 1)
+                return meshes;
 
-                var p = Polygons[j];
+            var sourceVertices = Vertices;
+            var sourcePolygons = Polygons;
+
+            void Remap(IOPolygon p, List<IOVertex> outVertices, IOPolygon outPoly)
+            {
+                Dictionary<int, int> remap = new Dictionary<int, int>();
+                foreach (var index in p.Indicies)
+                {
+                    if (!remap.TryGetValue(index, out int newIndex))
+                    {
+                        newIndex = outVertices.Count;
+                        remap.Add(index, newIndex);
+                        outVertices.Add(sourceVertices[index]);
+                    }
+                    outPoly.Indicies.Add(newIndex);
+                }
+            }
+
+            IOPolygon CreatePolygon(IOPolygon p)
+            {
+                return new IOPolygon()
+                {
+                    Indicies = new List<int>(),
+                    Attribute = p.Attribute,
+                    MaterialName = p.MaterialName,
+                    PrimitiveType = p.PrimitiveType,
+                };
+            }
+
+            for (int j = 1; j < sourcePolygons.Count; j++)
+            {
+                var p = sourcePolygons[j];
 
                 IOMesh mesh = new IOMesh();
                 mesh.Name = $"{Name}_{j}";
-                meshes.Add(mesh);
+                mesh.Transform = Transform;
+                mesh.ParentBone = ParentBone;
+                mesh.HasNormals = HasNormals;
+                mesh.HasTangents = HasTangents;
+                mesh.HasBitangents = HasBitangents;
 
-                IOPolygon poly = new IOPolygon();
-                poly.Indicies = new List<int>();
-                poly.Attribute = p.Attribute;
-                poly.MaterialName = p.MaterialName;
-                poly.PrimitiveType = p.PrimitiveType;
+                var poly = CreatePolygon(p);
+                Remap(p, mesh.Vertices, poly);
                 mesh.Polygons.Add(poly);
-
-                Dictionary<IOVertex, int> remapVertex = new Dictionary<IOVertex, int>();
-                for (int i = 0; i < p.Indicies.Count; i++)
-                {
-                    var v = Vertices[p.Indicies[i]];
-                    if (!remapVertex.ContainsKey(v))
-                    {
-                        remapVertex.Add(v, mesh.Vertices.Count);
-                        mesh.Vertices.Add(v);
-                    }
-                    poly.Indicies.Add(remapVertex[v]);
-                }
-                remapVertex.Clear();
+                meshes.Add(mesh);
             }
 
-            //Clear out all but the first polygons and vertices
-            var polyF = Polygons.FirstOrDefault();
-            Polygons.Clear();
-            Polygons.Add(polyF);
+            // Keep first mesh copy with only first polygon
+            var first = sourcePolygons[0];
+            var firstPoly = CreatePolygon(first);
+            var firstVertices = new List<IOVertex>();
+            Remap(first, firstVertices, firstPoly);
 
-            Optimize();
+            Vertices = firstVertices;
+            Polygons = new List<IOPolygon>() { firstPoly };
 
             return meshes;
         }

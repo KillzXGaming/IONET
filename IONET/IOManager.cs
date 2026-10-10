@@ -199,18 +199,15 @@ namespace IONET
                         if (settings.SplitMeshMaterials)
                         {
                             List<IOMesh> meshes = new List<IOMesh>();
-                            List<int> removeIndices = new List<int>();
 
                             for (int i = 0; i < model.Meshes.Count; i++)
                             {
-                                if (model.Meshes[i].Polygons.Count == 1)
+                                if (model.Meshes[i].Polygons.Count <= 1)
                                     continue;
 
-                                var splitMeshes = model.Meshes[i].SplitByMaterial();
-                                meshes.AddRange(splitMeshes);
+                                meshes.AddRange(model.Meshes[i].SplitByMaterial());
                             }
                             model.Meshes.AddRange(meshes);
-                            meshes.Clear();
                         }
                     }
 

@@ -63,11 +63,13 @@ namespace IONET.GLTF
                 var material = new MaterialBuilder(iomaterial.Name);
                 if (iomaterial.DiffuseMap != null)
                 {
-                    material.WithChannelImage(KnownChannel.BaseColor, iomaterial.DiffuseMap.FilePath);
+                    if (File.Exists(iomaterial.DiffuseMap.FilePath))
+                        material.WithChannelImage(KnownChannel.BaseColor, iomaterial.DiffuseMap.FilePath);
                 }
                 if (iomaterial.NormalMap != null)
                 {
-                    material.WithChannelImage(KnownChannel.Normal, iomaterial.NormalMap.FilePath);
+                    if (File.Exists(iomaterial.NormalMap.FilePath))
+                        material.WithChannelImage(KnownChannel.Normal, iomaterial.NormalMap.FilePath);
                 }
                 var mat = modelRoot.CreateMaterial(material);
             }
@@ -248,7 +250,7 @@ namespace IONET.GLTF
 
             modelRoot.SaveGLTF(filePath, new WriteSettings()
             {
-                JsonIndented = true,
+                JsonIndented = true, Validation = SharpGLTF.Validation.ValidationMode.Skip,
             });
         }
 
