@@ -10,14 +10,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AssimpNetter" Version="6.0.5" />
     <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0030" />
     <PackageReference Include="SharpGLTF.Toolkit" Version="1.0.0-alpha0030" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="AssimpNetter">
-      <HintPath>Lib\AssimpNetter.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>
